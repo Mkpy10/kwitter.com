@@ -1,47 +1,389 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Kwitter Room</title>
-<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/7.6.2/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/live/3.1/firebase.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kwitter - Rooms</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<link href="https://fonts.googleapis.com/css?family=Yeon+Sung&display=swap" rel="stylesheet">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
 
-<link rel="stylesheet" type="text/css" href="style.css">
+        .navbar h1 {
+            font-size: 28px;
+            color: #667eea;
+        }
 
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .username {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .create-room-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .create-room-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .create-room-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .create-btn {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .create-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .rooms-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .rooms-section h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .room-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+
+        .room-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .room-description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .room-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .member-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-<button id="logout" class="glyphicon glyphicon-log-out btn btn-danger" onclick="LogOut()">Logout</button>
-	<center>
-		<h1 class="header">	
-			Kwitter	
-			<sup>
-				<img src="m2.png">
-			</sup>
-		</h1>
-		<h3 id="UserName" class="color_white"></h3>
-		<div class="form-group input_div_room_page">
-			<label>#Add Room:</label>
-			<input type="text" id="CreateRoom" class="form-control" placeholder="Create a Room...">
+    <div class="container">
+        <div class="navbar">
+            <h1>📬 Kwitter</h1>
+            <div class="user-info">
+                <span class="username" id="username"></span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
 
-		</div>
-		<button class="btn btn-success" onclick="FindRoom()">#Add Room</button>
-		<h3 class="color_white">#TrendingRooms</h3>
-		<div id="Result"></div>
-	
-	</center>
-</div>
-<script src="kwitter_room.js"></script>
+        <div class="create-room-section">
+            <h2>🚀 Create a New Room</h2>
+            <div id="create-error" class="error-message" style="display: none;"></div>
+            <div class="create-room-form">
+                <div class="input-group">
+                    <input type="text" id="room-name" placeholder="Room name (e.g., Gaming, Movies, Tech)">
+                </div>
+                <div class="input-group">
+                    <input type="text" id="room-description" placeholder="Description (optional)">
+                </div>
+                <button class="create-btn" onclick="createRoom()">Create Room</button>
+            </div>
+        </div>
 
+        <div class="rooms-section">
+            <h2>🔥 All Rooms</h2>
+            <div id="rooms-container" class="rooms-grid">
+                <div class="loading">Loading rooms...</div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
 
+        // Check authentication
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+
+        // Display username
+        document.getElementById('username').textContent = `Welcome, ${user.username}!`;
+
+        // Fetch and display rooms
+        async function loadRooms() {
+            try {
+                const response = await fetch(`${API_URL}/rooms`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleLogout();
+                        return;
+                    }
+                    throw new Error('Failed to load rooms');
+                }
+
+                const rooms = await response.json();
+                displayRooms(rooms);
+            } catch (error) {
+                document.getElementById('rooms-container').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error loading rooms</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayRooms(rooms) {
+            const container = document.getElementById('rooms-container');
+            
+            if (rooms.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No rooms yet</h3>
+                        <p>Be the first to create a room!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = rooms.map(room => `
+                <div class="room-card" onclick="joinRoom(${room.id}, '${room.name}')">
+                    <div class="room-name">#${room.name}</div>
+                    <div class="room-description">${room.description || 'No description'}</div>
+                    <div class="room-meta">
+                        <span class="member-count">👥 ${room.member_count || 0} members</span>
+                        <span>by ${room.creator_name || 'Unknown'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createRoom() {
+            const name = document.getElementById('room-name').value.trim();
+            const description = document.getElementById('room-description').value.trim();
+            const errorEl = document.getElementById('create-error');
+
+            if (!name) {
+                errorEl.textContent = 'Please enter a room name';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            errorEl.style.display = 'none';
+
+            try {
+                const response = await fetch(`${API_URL}/rooms`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name, description })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to create room');
+                }
+
+                // Clear inputs
+                document.getElementById('room-name').value = '';
+                document.getElementById('room-description').value = '';
+
+                // Reload rooms
+                loadRooms();
+
+                // Join the newly created room
+                setTimeout(() => joinRoom(data.id, data.name), 500);
+            } catch (error) {
+                errorEl.textContent = error.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        async function joinRoom(roomId, roomName) {
+            try {
+                // Join the room
+                await fetch(`${API_URL}/rooms/${roomId}/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                // Store room info and navigate
+                localStorage.setItem('currentRoom', JSON.stringify({ id: roomId, name: roomName }));
+                window.location.href = 'chat.html';
+            } catch (error) {
+                alert('Failed to join room: ' + error.message);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('currentRoom');
+            window.location.href = 'index.html';
+        }
+
+        // Load rooms on page load
+        loadRooms();
+
+        // Refresh rooms every 10 seconds
+        setInterval(loadRooms, 10000);
+
+        // Enter key support for creating rooms
+        document.getElementById('room-name').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') createRoom();
+        });
+    </script>
 </body>
 </html>
